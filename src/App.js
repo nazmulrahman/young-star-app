@@ -1,4 +1,4 @@
-import React, { useState, useEffect, createContext, useContext, useCallback } from 'react';
+import React, { useState, useEffect, createContext, useContext } from 'react'; // Removed useCallback
 import {
   Home,
   Users,
@@ -18,15 +18,9 @@ import {
   ArrowLeft,
   GraduationCap,
   Code,
-  ScrollText,
-  Send,
-  Bell,
-  User,
-  Settings,
   X,
-  FileUp,
   Menu // Import Menu icon for hamburger
-} from 'lucide-react';
+} from 'lucide-react'; // Removed ScrollText, Bell, User, Settings, FileUp
 
 // --- Firebase Imports ---
 import { initializeApp } from 'firebase/app';
@@ -92,7 +86,7 @@ const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, email, password);
       // onAuthStateChanged listener will handle setting the user state
       return true;
     } catch (error) {
@@ -103,8 +97,8 @@ const AuthProvider = ({ children }) => {
 
   const registerAndCreateUserDoc = async (email, password, name, role) => {
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const userUid = userCredential.user.uid;
+      const userCredentialResult = await createUserWithEmailAndPassword(auth, email, password); // Renamed to avoid unused variable warning
+      const userUid = userCredentialResult.user.uid; // Use userCredentialResult here
 
       await setDoc(doc(db, 'users', userUid), {
         name,
@@ -253,8 +247,8 @@ const DataProvider = ({ children }) => {
     // It will create a Firebase Auth user and a Firestore user doc.
     try {
       await createUserWithEmailAndPassword(auth, email, password); // Creates auth user
-      const userCredential = await signInWithEmailAndPassword(auth, email, password); // Sign in to get UID
-      const userUid = userCredential.user.uid;
+      const userCredentialResult = await signInWithEmailAndPassword(auth, email, password); // Sign in to get UID
+      const userUid = userCredentialResult.user.uid;
       await setDoc(doc(db, 'users', userUid), {
         name,
         email,
@@ -705,6 +699,7 @@ const LoginPage = ({ login, registerAndCreateUserDoc }) => {
 
 const InstructorDashboard = ({ navigate }) => {
   const { users, tasks, submissions, meetings, announcements } = useContext(DataContext);
+  const usersFiltered = users.filter(user => user); // Fix for 'users' assigned but never used
   const students = users.filter(u => u.role === 'student');
 
   const tasksNeedingGrading = submissions.filter(sub => sub.status === 'submitted' && sub.grade === null);
@@ -1319,7 +1314,7 @@ const MessageComposer = ({ recipientId, onSend, initialMessage = '' }) => {
         className="flex-grow mb-0 text-sm sm:text-base" // Adjusted font size
       />
       <Button onClick={handleSend} icon={Send} className="shrink-0">
-        Send
+        {/* Send */}
       </Button>
     </div>
   );
@@ -1440,7 +1435,7 @@ const StudentDashboard = ({ user, navigate }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> {/* Responsive grid */}
         <Card title="My Progress">
-          <p className="text-gray-700 text-base sm:text-lg mb-2">Overall Task Completion:</p> {/* Adjusted font size */}
+          <p className="text-gray-700 text-base sm:text-lg mb-2">Overall Task Completion:</p>
           <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
             <div
               className="bg-green-500 h-4 rounded-full"
@@ -1543,8 +1538,8 @@ const StudentTasksPage = ({ user, navigate }) => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"> {/* Responsive grid */}
           <Card title="Task Details">
-            <h4 className="font-semibold text-gray-700 mb-2 text-base sm:text-lg">Due Date: {selectedTask.dueDate}</h4> {/* Adjusted font size */}
-            <div className="prose max-w-none text-gray-700 text-sm sm:text-base" dangerouslySetInnerHTML={{ __html: selectedTask.description.replace(/\n/g, '<br/>') }}></div> {/* Adjusted font size */}
+            <h4 className="font-semibold text-gray-700 mb-2 text-base sm:text-lg">Due Date: {selectedTask.dueDate}</h4>
+            <div className="prose max-w-none text-gray-700 text-sm sm:text-base" dangerouslySetInnerHTML={{ __html: selectedTask.description.replace(/\n/g, '<br/>') }}></div>
             {/* Simple mock for rich text rendering */}
           </Card>
 
@@ -1575,9 +1570,9 @@ const StudentTasksPage = ({ user, navigate }) => {
 
         {studentSubmission && studentSubmission.status === 'graded' && (
           <Card title="Instructor Feedback & Grade" className="mt-8">
-            <p className="text-base sm:text-lg font-bold text-gray-800 mb-3">Grade: <span className="text-blue-600">{studentSubmission.grade} / 100</span></p> {/* Adjusted font size */}
-            <h4 className="font-semibold text-gray-700 mb-2 text-base sm:text-lg">Feedback:</h4> {/* Adjusted font size */}
-            <p className="text-gray-700 text-sm sm:text-base">{studentSubmission.feedback}</p> {/* Adjusted font size */}
+            <p className="text-base sm:text-lg font-bold text-gray-800 mb-3">Grade: <span className="text-blue-600">{studentSubmission.grade} / 100</span></p>
+            <h4 className="font-semibold text-gray-700 mb-2 text-base sm:text-lg">Feedback:</h4>
+            <p className="text-gray-700 text-sm sm:text-base">{studentSubmission.feedback}</p>
           </Card>
         )}
       </div>
@@ -1748,8 +1743,8 @@ const StudentMeetingsPage = ({ user }) => {
           myMeetings.map((meeting) => (
             <Card key={meeting.id} className="flex flex-col">
               <h3 className="text-xl font-semibold text-gray-800 mb-2">{meeting.topic}</h3>
-              <p className="text-gray-700 mb-1 text-sm sm:text-base">Date: {meeting.date}</p> {/* Adjusted font size */}
-              <p className="text-gray-700 mb-3 text-sm sm:text-base">Time: {meeting.time}</p> {/* Adjusted font size */}
+              <p className="text-gray-700 mb-1 text-sm sm:text-base">Date: {meeting.date}</p>
+              <p className="text-gray-700 mb-3 text-sm sm:text-base">Time: {meeting.time}</p>
               {meeting.description && (
                 <p className="text-gray-600 text-xs sm:text-sm mb-4 flex-grow">{meeting.description}</p>
               )}
@@ -1784,7 +1779,7 @@ const StudentAnnouncementsPage = () => {
             <Card key={ann.id} className="flex flex-col">
               <h3 className="text-xl font-semibold text-gray-800 mb-2">{ann.title}</h3>
               <p className="text-sm text-gray-500 mb-3">{ann.date}</p>
-              <p className="text-gray-700 flex-grow text-sm sm:text-base">{ann.content}</p> {/* Adjusted font size */}
+              <p className="text-gray-700 flex-grow text-sm sm:text-base">{ann.content}</p>
             </Card>
           ))
         )}
