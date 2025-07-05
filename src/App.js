@@ -24,16 +24,16 @@ import {
   User,
   Settings,
   X,
-  FileUp
+  FileUp,
+  Menu // Import Menu icon for hamburger
 } from 'lucide-react';
 
 // --- Firebase Imports ---
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword } from 'firebase/auth';
-import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, where, getDocs, serverTimestamp, deleteDoc } from 'firebase/firestore'; // Added deleteDoc
+import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, where, getDocs, serverTimestamp, deleteDoc } from 'firebase/firestore';
 
 // --- Firebase Configuration ---
-// IMPORTANT: Replace with your actual Firebase config from the Firebase Console
 const firebaseConfig = {
   apiKey: "AIzaSyDUzJaV9K6IW2_O2HrVSm1_QTBkuBVl1Co",
   authDomain: "young-star-platform.firebaseapp.com",
@@ -43,7 +43,6 @@ const firebaseConfig = {
   appId: "1:965704830662:web:edc7fecf83f2ede880d1c7",
   measurementId: "G-6WPNWP94Q0"
 };
-
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -426,9 +425,13 @@ const DataProvider = ({ children }) => {
 
 // --- Reusable Components ---
 
-const Navbar = ({ user, logout, navigate, role }) => (
+const Navbar = ({ user, logout, navigate, role, toggleSidebar }) => (
   <nav className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-4 shadow-lg flex justify-between items-center rounded-b-lg">
     <div className="flex items-center space-x-3">
+      {/* Hamburger icon for mobile */}
+      <button onClick={toggleSidebar} className="md:hidden text-white focus:outline-none">
+        <Menu className="h-7 w-7" />
+      </button>
       <GraduationCap className="h-8 w-8" />
       <span className="text-2xl font-bold tracking-wide">Young-Star</span>
     </div>
@@ -447,7 +450,7 @@ const Navbar = ({ user, logout, navigate, role }) => (
   </nav>
 );
 
-const Sidebar = ({ navigate, role, currentPage }) => {
+const Sidebar = ({ navigate, role, currentPage, showSidebar, toggleSidebar }) => {
   const instructorNav = [
     { name: 'Dashboard', icon: Home, page: 'instructor-dashboard' },
     { name: 'Students', icon: Users, page: 'instructor-students' },
@@ -468,16 +471,32 @@ const Sidebar = ({ navigate, role, currentPage }) => {
 
   const navItems = role === 'instructor' ? instructorNav : studentNav;
 
+  // Conditional classes for responsive sidebar
+  const sidebarClasses = `
+    fixed inset-y-0 left-0 z-40 w-64 bg-gray-800 text-white p-6 shadow-xl flex-col h-full
+    transform transition-transform duration-300 ease-in-out
+    ${showSidebar ? 'translate-x-0' : '-translate-x-full'}
+    md:relative md:translate-x-0 md:flex md:rounded-r-lg
+  `;
+
   return (
-    <div className="w-64 bg-gray-800 text-white p-6 shadow-xl rounded-r-lg flex flex-col h-full">
-      <div className="mb-8">
+    <div className={sidebarClasses}>
+      {/* Close button for mobile sidebar */}
+      <button onClick={toggleSidebar} className="absolute top-4 right-4 md:hidden text-white focus:outline-none">
+        <X className="h-7 w-7" />
+      </button>
+
+      <div className="mb-8 mt-8 md:mt-0"> {/* Adjusted top margin for mobile close button */}
         <h2 className="text-3xl font-extrabold text-blue-300">Menu</h2>
       </div>
       <ul className="space-y-4 flex-grow">
         {navItems.map((item) => (
           <li key={item.name}>
             <button
-              onClick={() => navigate(item.page)}
+              onClick={() => {
+                navigate(item.page);
+                toggleSidebar(); // Close sidebar on navigation for mobile
+              }}
               className={`flex items-center w-full px-4 py-3 rounded-lg text-lg font-medium transition duration-300 ease-in-out
                 ${currentPage === item.page ? 'bg-blue-700 text-white shadow-md' : 'hover:bg-gray-700 hover:text-blue-200'}`}
             >
@@ -499,7 +518,7 @@ const Card = ({ title, children, className = '' }) => (
 );
 
 const Button = ({ children, onClick, className = '', variant = 'primary', icon: Icon = null }) => {
-  const baseStyle = 'flex items-center justify-center px-5 py-2 rounded-full font-semibold transition duration-300 ease-in-out shadow-md';
+  const baseStyle = 'flex items-center justify-center px-5 py-2 rounded-full font-semibold transition duration-300 ease-in-out shadow-md text-sm sm:text-base'; // Adjusted font size
   const variants = {
     primary: 'bg-blue-600 text-white hover:bg-blue-700',
     secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300',
@@ -522,7 +541,7 @@ const Input = ({ label, type = 'text', value, onChange, placeholder = '', classN
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 text-sm sm:text-base" // Adjusted font size
     />
   </div>
 );
@@ -535,7 +554,7 @@ const Textarea = ({ label, value, onChange, placeholder = '', className = '', ro
       onChange={onChange}
       placeholder={placeholder}
       rows={rows}
-      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 resize-y"
+      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 resize-y text-sm sm:text-base" // Adjusted font size
     ></textarea>
   </div>
 );
@@ -546,7 +565,7 @@ const Select = ({ label, value, onChange, options, className = '' }) => (
     <select
       value={value}
       onChange={onChange}
-      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 text-sm sm:text-base" // Adjusted font size
     >
       {options.map((option) => (
         <option key={option.value} value={option.value}>
@@ -561,7 +580,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 relative">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 relative"> {/* max-w-lg to prevent too wide on desktop, w-full for mobile */}
         <h3 className="text-2xl font-bold text-gray-800 mb-4">{title}</h3>
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
           <X className="h-6 w-6" />
@@ -715,18 +734,18 @@ const InstructorDashboard = ({ navigate }) => {
   });
 
   return (
-    <div className="p-8 space-y-8">
-      <h1 className="text-4xl font-extrabold text-gray-900 mb-6">Instructor Dashboard</h1>
+    <div className="p-4 sm:p-8 space-y-8"> {/* Adjusted padding */}
+      <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-6">Instructor Dashboard</h1> {/* Adjusted font size */}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> {/* Responsive grid */}
         <Card title="Quick Stats">
-          <p className="text-gray-700 text-lg mb-2">
+          <p className="text-gray-700 text-base sm:text-lg mb-2"> {/* Adjusted font size */}
             <span className="font-bold text-blue-600">{tasksNeedingGrading.length}</span> Submissions Needing Grading
           </p>
-          <p className="text-gray-700 text-lg mb-2">
+          <p className="text-gray-700 text-base sm:text-lg mb-2"> {/* Adjusted font size */}
             <span className="font-bold text-blue-600">{students.length}</span> Total Students
           </p>
-          <p className="text-gray-700 text-lg">
+          <p className="text-gray-700 text-base sm:text-lg"> {/* Adjusted font size */}
             <span className="font-bold text-blue-600">{upcomingMeetings.length}</span> Upcoming Meetings
           </p>
         </Card>
@@ -735,13 +754,13 @@ const InstructorDashboard = ({ navigate }) => {
           {upcomingMeetings.length > 0 ? (
             <ul className="space-y-3">
               {upcomingMeetings.slice(0, 3).map((meeting) => (
-                <li key={meeting.id} className="text-gray-700">
+                <li key={meeting.id} className="text-gray-700 text-sm sm:text-base"> {/* Adjusted font size */}
                   <span className="font-semibold">{meeting.topic}</span> on {meeting.date} at {meeting.time}
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-gray-600">No upcoming meetings.</p>
+            <p className="text-gray-600 text-sm sm:text-base">No upcoming meetings.</p>
           )}
           <Button variant="outline" className="mt-4" onClick={() => navigate('instructor-meetings')} icon={Calendar}>
             View All Meetings
@@ -752,13 +771,13 @@ const InstructorDashboard = ({ navigate }) => {
           {latestAnnouncements.length > 0 ? (
             <ul className="space-y-3">
               {latestAnnouncements.map((ann) => (
-                <li key={ann.id} className="text-gray-700">
+                <li key={ann.id} className="text-gray-700 text-sm sm:text-base"> {/* Adjusted font size */}
                   <span className="font-semibold">{ann.title}</span> ({ann.date})
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-gray-600">No announcements yet.</p>
+            <p className="text-gray-600 text-sm sm:text-base">No announcements yet.</p>
           )}
           <Button variant="outline" className="mt-4" onClick={() => navigate('instructor-announcements')} icon={Megaphone}>
             Manage Announcements
@@ -767,42 +786,44 @@ const InstructorDashboard = ({ navigate }) => {
       </div>
 
       <Card title="Student Progress Reports">
-        <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
-          <thead className="bg-gray-100 border-b border-gray-200">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Email</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Completed Tasks</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Total Points</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Overall Progress</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {studentReports.map((student) => (
-              <tr key={student.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{student.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{student.email}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{student.completedTasksCount} / {student.assignedTasksCount}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{student.totalPoints}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                  <div className="w-32 bg-gray-200 rounded-full h-2.5">
-                    <div
-                      className="bg-blue-600 h-2.5 rounded-full"
-                      style={{ width: `${student.overallProgress}%` }}
-                    ></div>
-                  </div>
-                  <span className="ml-2 text-xs">{student.overallProgress}%</span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <Button variant="secondary" size="sm" onClick={() => alert(`Viewing detailed report for ${student.name}`)} icon={Eye}>
-                    View Report
-                  </Button>
-                </td>
+        <div className="overflow-x-auto"> {/* Added for horizontal scrolling on small screens */}
+          <table className="min-w-full bg-white rounded-lg shadow-sm">
+            <thead className="bg-gray-100 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Email</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Completed Tasks</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Total Points</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Overall Progress</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {studentReports.map((student) => (
+                <tr key={student.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{student.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{student.email}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{student.completedTasksCount} / {student.assignedTasksCount}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{student.totalPoints}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <div className="w-24 sm:w-32 bg-gray-200 rounded-full h-2.5"> {/* Adjusted width */}
+                      <div
+                        className="bg-blue-600 h-2.5 rounded-full"
+                        style={{ width: `${student.overallProgress}%` }}
+                      ></div>
+                    </div>
+                    <span className="ml-2 text-xs">{student.overallProgress}%</span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <Button variant="secondary" size="sm" onClick={() => alert(`Viewing detailed report for ${student.name}`)} icon={Eye}>
+                      View Report
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </Card>
     </div>
   );
@@ -834,43 +855,45 @@ const InstructorStudentsPage = ({ navigate }) => {
   };
 
   return (
-    <div className="p-8">
-      <h1 className="text-4xl font-extrabold text-gray-900 mb-6">Manage Students</h1>
+    <div className="p-4 sm:p-8"> {/* Adjusted padding */}
+      <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-6">Manage Students</h1> {/* Adjusted font size */}
       <Button onClick={() => setIsAddStudentModalOpen(true)} icon={Plus} className="mb-6">
         Add New Student
       </Button>
 
       <Card>
-        <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
-          <thead className="bg-gray-100 border-b border-gray-200">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Email</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Firebase UID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {students.map((student) => (
-              <tr key={student.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{student.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{student.email}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{student.id}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                  <Button variant="secondary" size="sm" onClick={() => alert(`Viewing profile for ${student.name}`)} icon={Eye}>
-                    View Profile
-                  </Button>
-                  {/* Deleting users/students from Firebase Auth and Firestore is a more complex operation
-                      that should ideally be handled via a secure backend function, not directly from frontend.
-                      So, keeping delete button commented out.
-                  <Button variant="danger" size="sm" onClick={() => alert(`Deleting ${student.name}`)} icon={Trash2}>
-                    Delete
-                  </Button> */}
-                </td>
+        <div className="overflow-x-auto"> {/* Added for horizontal scrolling on small screens */}
+          <table className="min-w-full bg-white rounded-lg shadow-sm">
+            <thead className="bg-gray-100 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Email</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Firebase UID</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {students.map((student) => (
+                <tr key={student.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{student.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{student.email}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{student.id}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                    <Button variant="secondary" size="sm" onClick={() => alert(`Viewing profile for ${student.name}`)} icon={Eye}>
+                      View Profile
+                    </Button>
+                    {/* Deleting users/students from Firebase Auth and Firestore is a more complex operation
+                        that should ideally be handled via a secure backend function, not directly from frontend.
+                        So, keeping delete button commented out.
+                    <Button variant="danger" size="sm" onClick={() => alert(`Deleting ${student.name}`)} icon={Trash2}>
+                      Delete
+                    </Button> */}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </Card>
 
       <Modal isOpen={isAddStudentModalOpen} onClose={() => setIsAddStudentModalOpen(false)} title="Add New Student">
@@ -967,15 +990,15 @@ const InstructorTasksPage = ({ navigate }) => {
 
   if (currentView === 'grade' && selectedSubmissionForGrading) {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-8"> {/* Adjusted padding */}
         <Button variant="secondary" onClick={() => setCurrentView('list')} icon={ArrowLeft} className="mb-6">
           Back to Tasks
         </Button>
-        <h1 className="text-4xl font-extrabold text-gray-900 mb-6">
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-6"> {/* Adjusted font size */}
           Grade Task: "{currentTaskForGrading?.title}" for {studentForGrading?.name}
         </h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"> {/* Responsive grid */}
           <Card title="Student's Submission">
             <h4 className="font-semibold text-gray-700 mb-2">Submitted Code:</h4>
             <pre className="bg-gray-100 p-4 rounded-lg text-sm overflow-x-auto border border-gray-200">
@@ -1016,56 +1039,58 @@ const InstructorTasksPage = ({ navigate }) => {
   }
 
   return (
-    <div className="p-8">
-      <h1 className="text-4xl font-extrabold text-gray-900 mb-6">Manage Tasks</h1>
+    <div className="p-4 sm:p-8"> {/* Adjusted padding */}
+      <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-6">Manage Tasks</h1> {/* Adjusted font size */}
       <Button onClick={handleOpenCreateTask} icon={Plus} className="mb-6">
         Create New Task
       </Button>
 
       <Card>
-        <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
-          <thead className="bg-gray-100 border-b border-gray-200">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Task Title</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Due Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Assigned To</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Submissions</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {tasks.map((task) => {
-              const taskSubmissions = submissions.filter(sub => sub.taskId === task.id);
-              const submittedCount = taskSubmissions.length;
-              const needingGradeCount = taskSubmissions.filter(sub => sub.status === 'submitted' && sub.grade === null).length;
+        <div className="overflow-x-auto"> {/* Added for horizontal scrolling on small screens */}
+          <table className="min-w-full bg-white rounded-lg shadow-sm">
+            <thead className="bg-gray-100 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Task Title</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Due Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Assigned To</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Submissions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {tasks.map((task) => {
+                const taskSubmissions = submissions.filter(sub => sub.taskId === task.id);
+                const submittedCount = taskSubmissions.length;
+                const needingGradeCount = taskSubmissions.filter(sub => sub.status === 'submitted' && sub.grade === null).length;
 
-              return (
-                <tr key={task.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{task.title}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{task.dueDate}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {task.assignedTo.length === users.filter(u => u.role === 'student').length ? 'All Students' : task.assignedTo.map(id => users.find(u => u.id === id)?.name).join(', ')}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {submittedCount} / {task.assignedTo.length} submitted
-                    <br />
-                    {needingGradeCount > 0 && <span className="text-red-500">{needingGradeCount} needing grade</span>}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    <Button variant="secondary" size="sm" onClick={() => handleOpenEditTask(task)} icon={Edit}>
-                      Edit
-                    </Button>
-                    {needingGradeCount > 0 && (
-                      <Button variant="primary" size="sm" onClick={() => handleGradeSubmission(taskSubmissions.find(sub => sub.status === 'submitted' && sub.grade === null))} icon={GraduationCap}>
-                        Grade
+                return (
+                  <tr key={task.id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{task.title}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{task.dueDate}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      {task.assignedTo.length === users.filter(u => u.role === 'student').length ? 'All Students' : task.assignedTo.map(id => users.find(u => u.id === id)?.name).join(', ')}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      {submittedCount} / {task.assignedTo.length} submitted
+                      <br />
+                      {needingGradeCount > 0 && <span className="text-red-500">{needingGradeCount} needing grade</span>}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                      <Button variant="secondary" size="sm" onClick={() => handleOpenEditTask(task)} icon={Edit}>
+                        Edit
                       </Button>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                      {needingGradeCount > 0 && (
+                        <Button variant="primary" size="sm" onClick={() => handleGradeSubmission(taskSubmissions.find(sub => sub.status === 'submitted' && sub.grade === null))} icon={GraduationCap}>
+                          Grade
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </Card>
 
       <Modal isOpen={isTaskModalOpen} onClose={() => setIsTaskModalOpen(false)} title={editingTask ? 'Edit Task' : 'Create New Task'}>
@@ -1073,7 +1098,7 @@ const InstructorTasksPage = ({ navigate }) => {
         <Textarea label="Description (Rich Text Editor Mock)" value={formDescription} onChange={(e) => setFormDescription(e.target.value)} placeholder="Provide detailed instructions and requirements..." rows={8} required />
         <Input label="Due Date" type="date" value={formDueDate} onChange={(e) => setFormDueDate(e.target.value)} required />
         <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-medium mb-2">Assign to Students</label>
+          <label className="block text-gray-700 text-sm font-medium mb-2">Invite Students</label>
           <div className="border border-gray-300 rounded-lg p-3 max-h-40 overflow-y-auto">
             {students.map((student) => (
               <div key={student.id} className="flex items-center mb-2">
@@ -1142,44 +1167,46 @@ const InstructorMeetingsPage = ({ navigate }) => {
   const sortedMeetings = [...meetings].sort((a, b) => (a.createdAt?.toDate() || 0) - (b.createdAt?.toDate() || 0));
 
   return (
-    <div className="p-8">
-      <h1 className="text-4xl font-extrabold text-gray-900 mb-6">Manage Meetings</h1>
+    <div className="p-4 sm:p-8"> {/* Adjusted padding */}
+      <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-6">Manage Meetings</h1> {/* Adjusted font size */}
       <Button onClick={() => setIsModalOpen(true)} icon={Plus} className="mb-6">
         Schedule New Meeting
       </Button>
 
       <Card>
-        <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
-          <thead className="bg-gray-100 border-b border-gray-200">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Topic</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Time</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Participants</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {sortedMeetings.map((meeting) => (
-              <tr key={meeting.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{meeting.topic}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{meeting.date}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{meeting.time}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                  {meeting.invitedStudents.length === students.length ? 'All Students' : meeting.invitedStudents.map(id => users.find(u => u.id === id)?.name).join(', ')}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                  <Button variant="secondary" size="sm" onClick={() => window.open(meeting.googleMeetLink, '_blank')} icon={Calendar}>
-                    Join
-                  </Button>
-                  {/* <Button variant="danger" size="sm" onClick={() => alert(`Deleting ${meeting.topic}`)} icon={Trash2}>
-                    Delete
-                  </Button> */}
-                </td>
+        <div className="overflow-x-auto"> {/* Added for horizontal scrolling on small screens */}
+          <table className="min-w-full bg-white rounded-lg shadow-sm">
+            <thead className="bg-gray-100 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Topic</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Time</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Participants</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {sortedMeetings.map((meeting) => (
+                <tr key={meeting.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{meeting.topic}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{meeting.date}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{meeting.time}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    {meeting.invitedStudents.length === students.length ? 'All Students' : meeting.invitedStudents.map(id => users.find(u => u.id === id)?.name).join(', ')}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                    <Button variant="secondary" size="sm" onClick={() => window.open(meeting.googleMeetLink, '_blank')} icon={Calendar}>
+                      Join
+                    </Button>
+                    {/* <Button variant="danger" size="sm" onClick={() => alert(`Deleting ${meeting.topic}`)} icon={Trash2}>
+                      Delete
+                    </Button> */}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Schedule New Meeting">
@@ -1240,13 +1267,13 @@ const InstructorAnnouncementsPage = ({ navigate }) => {
   const sortedAnnouncements = [...announcements].sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
 
   return (
-    <div className="p-8">
-      <h1 className="text-4xl font-extrabold text-gray-900 mb-6">Manage Announcements</h1>
+    <div className="p-4 sm:p-8"> {/* Adjusted padding */}
+      <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-6">Manage Announcements</h1> {/* Adjusted font size */}
       <Button onClick={() => setIsModalOpen(true)} icon={Plus} className="mb-6">
         Create New Announcement
       </Button>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> {/* Responsive grid */}
         {sortedAnnouncements.map((ann) => (
           <Card key={ann.id} className="flex flex-col">
             <h3 className="text-xl font-semibold text-gray-800 mb-2">{ann.title}</h3>
@@ -1289,7 +1316,7 @@ const MessageComposer = ({ recipientId, onSend, initialMessage = '' }) => {
         onChange={(e) => setMessage(e.target.value)}
         placeholder="Type your message..."
         rows={1}
-        className="flex-grow mb-0"
+        className="flex-grow mb-0 text-sm sm:text-base" // Adjusted font size
       />
       <Button onClick={handleSend} icon={Send} className="shrink-0">
         Send
@@ -1322,15 +1349,15 @@ const InstructorMessagesPage = ({ user }) => {
   };
 
   return (
-    <div className="p-8 flex h-[calc(100vh-160px)]"> {/* Adjust height based on navbar/padding */}
-      <div className="w-1/3 bg-white rounded-l-xl shadow-lg border-r border-gray-200 overflow-y-auto">
-        <h2 className="text-2xl font-bold text-gray-800 p-4 border-b border-gray-200">Students</h2>
+    <div className="p-4 sm:p-8 flex flex-col md:flex-row h-[calc(100vh-160px)] md:h-[calc(100vh-120px)]"> {/* Adjusted padding and flex direction */}
+      <div className="w-full md:w-1/3 bg-white rounded-t-xl md:rounded-l-xl md:rounded-tr-none shadow-lg md:border-r border-b md:border-b-0 border-gray-200 overflow-y-auto mb-4 md:mb-0"> {/* Adjusted width and rounded corners */}
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800 p-4 border-b border-gray-200">Students</h2> {/* Adjusted font size */}
         <ul className="divide-y divide-gray-100">
           {students.map((student) => (
             <li key={student.id}>
               <button
                 onClick={() => setSelectedStudentId(student.id)}
-                className={`w-full text-left p-4 hover:bg-blue-50 transition duration-200 ${
+                className={`w-full text-left p-4 hover:bg-blue-50 transition duration-200 text-sm sm:text-base ${ /* Adjusted font size */
                   selectedStudentId === student.id ? 'bg-blue-100 font-semibold' : ''
                 }`}
               >
@@ -1341,15 +1368,15 @@ const InstructorMessagesPage = ({ user }) => {
         </ul>
       </div>
 
-      <div className="w-2/3 bg-white rounded-r-xl shadow-lg flex flex-col">
+      <div className="w-full md:w-2/3 bg-white rounded-b-xl md:rounded-r-xl md:rounded-bl-none shadow-lg flex flex-col"> {/* Adjusted width and rounded corners */}
         {selectedStudentId ? (
           <>
-            <h2 className="text-2xl font-bold text-gray-800 p-4 border-b border-gray-200">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 p-4 border-b border-gray-200"> {/* Adjusted font size */}
               Chat with {users.find(u => u.id === selectedStudentId)?.name}
             </h2>
             <div className="flex-grow p-4 overflow-y-auto space-y-4">
               {currentConversation.length === 0 ? (
-                <p className="text-gray-500 text-center mt-10">No messages yet. Start a conversation!</p>
+                <p className="text-gray-500 text-center mt-10 text-sm sm:text-base">No messages yet. Start a conversation!</p>
               ) : (
                 currentConversation.map((msg) => (
                   <div
@@ -1357,7 +1384,7 @@ const InstructorMessagesPage = ({ user }) => {
                     className={`flex ${msg.senderId === user.uid ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-xs p-3 rounded-lg shadow-sm ${
+                      className={`max-w-[70%] p-3 rounded-lg shadow-sm text-sm sm:text-base ${ /* Adjusted max-width and font size */
                         msg.senderId === user.uid ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'
                       }`}
                     >
@@ -1373,7 +1400,7 @@ const InstructorMessagesPage = ({ user }) => {
             <MessageComposer recipientId={selectedStudentId} onSend={handleSendMessage} />
           </>
         ) : (
-          <div className="flex-grow flex items-center justify-center text-gray-500">
+          <div className="flex-grow flex items-center justify-center text-gray-500 text-sm sm:text-base"> {/* Adjusted font size */}
             Select a student to start chatting.
           </div>
         )}
@@ -1408,12 +1435,12 @@ const StudentDashboard = ({ user, navigate }) => {
   const latestAnnouncements = [...announcements].sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0)).slice(0, 3);
 
   return (
-    <div className="p-8 space-y-8">
-      <h1 className="text-4xl font-extrabold text-gray-900 mb-6">Student Dashboard</h1>
+    <div className="p-4 sm:p-8 space-y-8"> {/* Adjusted padding */}
+      <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-6">Student Dashboard</h1> {/* Adjusted font size */}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> {/* Responsive grid */}
         <Card title="My Progress">
-          <p className="text-gray-700 text-lg mb-2">Overall Task Completion:</p>
+          <p className="text-gray-700 text-base sm:text-lg mb-2">Overall Task Completion:</p> {/* Adjusted font size */}
           <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
             <div
               className="bg-green-500 h-4 rounded-full"
@@ -1427,13 +1454,13 @@ const StudentDashboard = ({ user, navigate }) => {
           {tasksDueSoon.length > 0 ? (
             <ul className="space-y-3">
               {tasksDueSoon.slice(0, 3).map((task) => (
-                <li key={task.id} className="text-gray-700">
+                <li key={task.id} className="text-gray-700 text-sm sm:text-base"> {/* Adjusted font size */}
                   <span className="font-semibold">{task.title}</span> - Due {task.dueDate}
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-gray-600">No tasks due in the next 7 days.</p>
+            <p className="text-gray-600 text-sm sm:text-base">No tasks due in the next 7 days.</p>
           )}
           <Button variant="outline" className="mt-4" onClick={() => navigate('student-tasks')} icon={ClipboardList}>
             View All Tasks
@@ -1444,13 +1471,13 @@ const StudentDashboard = ({ user, navigate }) => {
           {upcomingMeetings.length > 0 ? (
             <ul className="space-y-3">
               {upcomingMeetings.slice(0, 3).map((meeting) => (
-                <li key={meeting.id} className="text-gray-700">
+                <li key={meeting.id} className="text-gray-700 text-sm sm:text-base"> {/* Adjusted font size */}
                   <span className="font-semibold">{meeting.topic}</span> on {meeting.date} at {meeting.time}
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-gray-600">No upcoming meetings.</p>
+            <p className="text-gray-600 text-sm sm:text-base">No upcoming meetings.</p>
           )}
           <Button variant="outline" className="mt-4" onClick={() => navigate('student-meetings')} icon={Calendar}>
             View All Meetings
@@ -1462,13 +1489,13 @@ const StudentDashboard = ({ user, navigate }) => {
         {latestAnnouncements.length > 0 ? (
           <ul className="space-y-3">
             {latestAnnouncements.map((ann) => (
-              <li key={ann.id} className="text-gray-700">
+              <li key={ann.id} className="text-gray-700 text-sm sm:text-base"> {/* Adjusted font size */}
                 <span className="font-semibold">{ann.title}</span> ({ann.date})
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-gray-600">No announcements yet.</p>
+          <p className="text-gray-600 text-sm sm:text-base">No announcements yet.</p>
         )}
         <Button variant="outline" className="mt-4" onClick={() => navigate('student-announcements')} icon={Megaphone}>
           View All Announcements
@@ -1508,16 +1535,16 @@ const StudentTasksPage = ({ user, navigate }) => {
   if (selectedTask) {
     const studentSubmission = submissions.find(sub => sub.taskId === selectedTask.id && sub.studentId === user.uid);
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-8"> {/* Adjusted padding */}
         <Button variant="secondary" onClick={() => setSelectedTask(null)} icon={ArrowLeft} className="mb-6">
           Back to My Tasks
         </Button>
-        <h1 className="text-4xl font-extrabold text-gray-900 mb-6">Task: {selectedTask.title}</h1>
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-6">Task: {selectedTask.title}</h1> {/* Adjusted font size */}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"> {/* Responsive grid */}
           <Card title="Task Details">
-            <h4 className="font-semibold text-gray-700 mb-2">Due Date: {selectedTask.dueDate}</h4>
-            <div className="prose max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: selectedTask.description.replace(/\n/g, '<br/>') }}></div>
+            <h4 className="font-semibold text-gray-700 mb-2 text-base sm:text-lg">Due Date: {selectedTask.dueDate}</h4> {/* Adjusted font size */}
+            <div className="prose max-w-none text-gray-700 text-sm sm:text-base" dangerouslySetInnerHTML={{ __html: selectedTask.description.replace(/\n/g, '<br/>') }}></div> {/* Adjusted font size */}
             {/* Simple mock for rich text rendering */}
           </Card>
 
@@ -1527,18 +1554,18 @@ const StudentTasksPage = ({ user, navigate }) => {
               value={currentCode}
               onChange={(e) => setCurrentCode(e.target.value)}
               rows={15}
-              className="font-mono text-sm bg-gray-100 border border-gray-300 rounded-lg p-3"
+              className="font-mono text-xs sm:text-sm bg-gray-100 border border-gray-300 rounded-lg p-3" // Adjusted font size
             />
-            <div className="flex space-x-3 mt-4">
-              <Button onClick={handleRunCode} icon={Code} variant="secondary">
+            <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mt-4"> {/* Responsive flex */}
+              <Button onClick={handleRunCode} icon={Code} variant="secondary" className="w-full sm:w-auto"> {/* Adjusted width */}
                 Run Code (Mock)
               </Button>
-              <Button onClick={handleSubmitCode} icon={CheckCircle}>
+              <Button onClick={handleSubmitCode} icon={CheckCircle} className="w-full sm:w-auto"> {/* Adjusted width */}
                 Submit Task
               </Button>
             </div>
             {mockOutput && (
-              <div className="bg-gray-100 p-4 rounded-lg text-sm mt-4 border border-gray-200">
+              <div className="bg-gray-100 p-4 rounded-lg text-xs sm:text-sm mt-4 border border-gray-200"> {/* Adjusted font size */}
                 <h4 className="font-semibold text-gray-700 mb-2">Mock Output:</h4>
                 <pre className="whitespace-pre-wrap">{mockOutput}</pre>
               </div>
@@ -1548,9 +1575,9 @@ const StudentTasksPage = ({ user, navigate }) => {
 
         {studentSubmission && studentSubmission.status === 'graded' && (
           <Card title="Instructor Feedback & Grade" className="mt-8">
-            <p className="text-lg font-bold text-gray-800 mb-3">Grade: <span className="text-blue-600">{studentSubmission.grade} / 100</span></p>
-            <h4 className="font-semibold text-gray-700 mb-2">Feedback:</h4>
-            <p className="text-gray-700">{studentSubmission.feedback}</p>
+            <p className="text-base sm:text-lg font-bold text-gray-800 mb-3">Grade: <span className="text-blue-600">{studentSubmission.grade} / 100</span></p> {/* Adjusted font size */}
+            <h4 className="font-semibold text-gray-700 mb-2 text-base sm:text-lg">Feedback:</h4> {/* Adjusted font size */}
+            <p className="text-gray-700 text-sm sm:text-base">{studentSubmission.feedback}</p> {/* Adjusted font size */}
           </Card>
         )}
       </div>
@@ -1558,49 +1585,51 @@ const StudentTasksPage = ({ user, navigate }) => {
   }
 
   return (
-    <div className="p-8">
-      <h1 className="text-4xl font-extrabold text-gray-900 mb-6">My Tasks</h1>
+    <div className="p-4 sm:p-8"> {/* Adjusted padding */}
+      <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-6">My Tasks</h1> {/* Adjusted font size */}
 
       <Card>
-        <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
-          <thead className="bg-gray-100 border-b border-gray-200">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Task Title</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Due Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Grade</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {myTasks.map((task) => {
-              const submission = submissions.find(sub => sub.taskId === task.id && sub.studentId === user.uid);
-              const status = submission ? submission.status : 'Not Started';
-              const grade = submission ? (submission.grade !== null ? `${submission.grade}/100` : '-') : '-';
-              return (
-                <tr key={task.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{task.title}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{task.dueDate}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      status === 'graded' ? 'bg-green-100 text-green-800' :
-                      status === 'submitted' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{grade}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <Button variant="secondary" size="sm" onClick={() => handleViewTask(task)} icon={Eye}>
-                      View Task
-                    </Button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto"> {/* Added for horizontal scrolling on small screens */}
+          <table className="min-w-full bg-white rounded-lg shadow-sm">
+            <thead className="bg-gray-100 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Task Title</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Due Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Grade</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {myTasks.map((task) => {
+                const submission = submissions.find(sub => sub.taskId === task.id && sub.studentId === user.uid);
+                const status = submission ? submission.status : 'Not Started';
+                const grade = submission ? (submission.grade !== null ? `${submission.grade}/100` : '-') : '-';
+                return (
+                  <tr key={task.id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{task.title}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{task.dueDate}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        status === 'graded' ? 'bg-green-100 text-green-800' :
+                        status === 'submitted' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{grade}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <Button variant="secondary" size="sm" onClick={() => handleViewTask(task)} icon={Eye}>
+                        View Task
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </Card>
     </div>
   );
@@ -1639,15 +1668,15 @@ const StudentNotesPage = ({ user }) => {
   };
 
   return (
-    <div className="p-8">
-      <h1 className="text-4xl font-extrabold text-gray-900 mb-6">My Notes</h1>
+    <div className="p-4 sm:p-8"> {/* Adjusted padding */}
+      <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-6">My Notes</h1> {/* Adjusted font size */}
       <Button onClick={() => setIsModalOpen(true)} icon={Plus} className="mb-6">
         Add New Note
       </Button>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> {/* Responsive grid */}
         {myNotes.length === 0 ? (
-          <p className="text-gray-600 col-span-full">You haven't added any notes yet.</p>
+          <p className="text-gray-600 col-span-full text-sm sm:text-base">You haven't added any notes yet.</p>
         ) : (
           myNotes.map((note) => (
             <Card key={note.id} className="flex flex-col">
@@ -1657,7 +1686,7 @@ const StudentNotesPage = ({ user }) => {
               </div>
               <p className="text-sm text-gray-500 mb-3">{note.createdAt?.toDate().toLocaleDateString()}</p>
               {note.type === 'text' ? (
-                <p className="text-gray-700 flex-grow line-clamp-4">{note.content}</p>
+                <p className="text-gray-700 flex-grow line-clamp-4 text-sm sm:text-base">{note.content}</p>
               ) : (
                 note.imageUrl && (
                   <img src={note.imageUrl} alt={note.title} className="w-full h-auto rounded-lg object-cover mb-3" onError={(e) => { e.target.onerror = null; e.target.src="https://placehold.co/300x200/CCCCCC/000000?text=Image+Load+Error"; }} />
@@ -1689,7 +1718,7 @@ const StudentNotesPage = ({ user }) => {
               type="file"
               accept="image/*"
               onChange={(e) => setFormFile(e.target.files[0])}
-              className="w-full text-gray-700 border border-gray-300 rounded-lg p-2"
+              className="w-full text-gray-700 border border-gray-300 rounded-lg p-2 text-sm sm:text-base" // Adjusted font size
             />
             {formFile && <p className="text-sm text-green-600 mt-2">File selected: {formFile.name}</p>}
           </div>
@@ -1709,20 +1738,20 @@ const StudentMeetingsPage = ({ user }) => {
     .sort((a, b) => (a.createdAt?.toDate() || 0) - (b.createdAt?.toDate() || 0));
 
   return (
-    <div className="p-8">
-      <h1 className="text-4xl font-extrabold text-gray-900 mb-6">My Meetings</h1>
+    <div className="p-4 sm:p-8"> {/* Adjusted padding */}
+      <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-6">My Meetings</h1> {/* Adjusted font size */}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> {/* Responsive grid */}
         {myMeetings.length === 0 ? (
-          <p className="text-gray-600 col-span-full">You have no scheduled meetings.</p>
+          <p className="text-gray-600 col-span-full text-sm sm:text-base">You have no scheduled meetings.</p>
         ) : (
           myMeetings.map((meeting) => (
             <Card key={meeting.id} className="flex flex-col">
               <h3 className="text-xl font-semibold text-gray-800 mb-2">{meeting.topic}</h3>
-              <p className="text-gray-700 mb-1">Date: {meeting.date}</p>
-              <p className="text-gray-700 mb-3">Time: {meeting.time}</p>
+              <p className="text-gray-700 mb-1 text-sm sm:text-base">Date: {meeting.date}</p> {/* Adjusted font size */}
+              <p className="text-gray-700 mb-3 text-sm sm:text-base">Time: {meeting.time}</p> {/* Adjusted font size */}
               {meeting.description && (
-                <p className="text-gray-600 text-sm mb-4 flex-grow">{meeting.description}</p>
+                <p className="text-gray-600 text-xs sm:text-sm mb-4 flex-grow">{meeting.description}</p>
               )}
               <Button
                 onClick={() => window.open(meeting.googleMeetLink, '_blank')}
@@ -1744,18 +1773,18 @@ const StudentAnnouncementsPage = () => {
   const sortedAnnouncements = [...announcements].sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
 
   return (
-    <div className="p-8">
-      <h1 className="text-4xl font-extrabold text-gray-900 mb-6">Announcements</h1>
+    <div className="p-4 sm:p-8"> {/* Adjusted padding */}
+      <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-6">Announcements</h1> {/* Adjusted font size */}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> {/* Responsive grid */}
         {sortedAnnouncements.length === 0 ? (
-          <p className="text-gray-600 col-span-full">No announcements available.</p>
+          <p className="text-gray-600 col-span-full text-sm sm:text-base">No announcements available.</p>
         ) : (
           sortedAnnouncements.map((ann) => (
             <Card key={ann.id} className="flex flex-col">
               <h3 className="text-xl font-semibold text-gray-800 mb-2">{ann.title}</h3>
               <p className="text-sm text-gray-500 mb-3">{ann.date}</p>
-              <p className="text-gray-700 flex-grow">{ann.content}</p>
+              <p className="text-gray-700 flex-grow text-sm sm:text-base">{ann.content}</p> {/* Adjusted font size */}
             </Card>
           ))
         )}
@@ -1782,21 +1811,21 @@ const StudentMessagesPage = ({ user }) => {
 
   if (!instructor) {
     return (
-      <div className="p-8 text-center text-gray-600">
+      <div className="p-4 sm:p-8 text-center text-gray-600 text-sm sm:text-base"> {/* Adjusted padding and font size */}
         <p>No instructor found to chat with. Please ask your administrator to create an instructor account.</p>
       </div>
     );
   }
 
   return (
-    <div className="p-8 flex h-[calc(100vh-160px)]">
-      <div className="w-1/3 bg-white rounded-l-xl shadow-lg border-r border-gray-200 overflow-y-auto">
-        <h2 className="text-2xl font-bold text-gray-800 p-4 border-b border-gray-200">Conversations</h2>
+    <div className="p-4 sm:p-8 flex flex-col md:flex-row h-[calc(100vh-160px)] md:h-[calc(100vh-120px)]"> {/* Adjusted padding and flex direction */}
+      <div className="w-full md:w-1/3 bg-white rounded-t-xl md:rounded-l-xl md:rounded-tr-none shadow-lg md:border-r border-b md:border-b-0 border-gray-200 overflow-y-auto mb-4 md:mb-0"> {/* Adjusted width and rounded corners */}
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800 p-4 border-b border-gray-200">Conversations</h2> {/* Adjusted font size */}
         <ul className="divide-y divide-gray-100">
           <li>
             <button
               // No specific selection needed for single instructor, but keep for consistency
-              className={`w-full text-left p-4 hover:bg-blue-50 transition duration-200 bg-blue-100 font-semibold`}
+              className={`w-full text-left p-4 hover:bg-blue-50 transition duration-200 text-sm sm:text-base bg-blue-100 font-semibold`} /* Adjusted font size */
             >
               {instructor.name} (Instructor)
             </button>
@@ -1804,14 +1833,14 @@ const StudentMessagesPage = ({ user }) => {
         </ul>
       </div>
 
-      <div className="w-2/3 bg-white rounded-r-xl shadow-lg flex flex-col">
+      <div className="w-full md:w-2/3 bg-white rounded-b-xl md:rounded-r-xl md:rounded-bl-none shadow-lg flex flex-col"> {/* Adjusted width and rounded corners */}
         <>
-          <h2 className="text-2xl font-bold text-gray-800 p-4 border-b border-gray-200">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 p-4 border-b border-gray-200"> {/* Adjusted font size */}
             Chat with {instructor.name}
           </h2>
           <div className="flex-grow p-4 overflow-y-auto space-y-4">
             {currentConversation.length === 0 ? (
-              <p className="text-gray-500 text-center mt-10">No messages yet. Start a conversation!</p>
+              <p className="text-gray-500 text-center mt-10 text-sm sm:text-base">No messages yet. Start a conversation!</p>
             ) : (
               currentConversation.map((msg) => (
                 <div
@@ -1819,7 +1848,7 @@ const StudentMessagesPage = ({ user }) => {
                   className={`flex ${msg.senderId === user.uid ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-xs p-3 rounded-lg shadow-sm ${
+                    className={`max-w-[70%] p-3 rounded-lg shadow-sm text-sm sm:text-base ${ /* Adjusted max-width and font size */
                       msg.senderId === user.uid ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'
                     }`}
                   >
@@ -1843,6 +1872,12 @@ const StudentMessagesPage = ({ user }) => {
 function App() {
   const { user, login, logout, loadingAuth, registerAndCreateUserDoc } = useContext(AuthContext);
   const [currentPage, setCurrentPage] = useState(''); // State to manage current page view
+  const [showSidebar, setShowSidebar] = useState(false); // State for mobile sidebar visibility
+
+  // Toggle sidebar visibility
+  const toggleSidebar = () => {
+    setShowSidebar(!showSidebar);
+  };
 
   useEffect(() => {
     if (!loadingAuth) {
@@ -1915,10 +1950,17 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-100 font-inter">
-      {user && <Navbar user={user} logout={logout} navigate={navigate} role={user.role} />}
-      <div className="flex">
-        {user && <Sidebar navigate={navigate} role={user.role} currentPage={currentPage} />}
-        <main className="flex-grow p-4">
+      {user && <Navbar user={user} logout={logout} navigate={navigate} role={user.role} toggleSidebar={toggleSidebar} />}
+      <div className="flex flex-col md:flex-row"> {/* Changed to flex-col on small, flex-row on medium+ */}
+        {user && <Sidebar navigate={navigate} role={user.role} currentPage={currentPage} showSidebar={showSidebar} toggleSidebar={toggleSidebar} />}
+        {/* Overlay for mobile sidebar */}
+        {showSidebar && (
+          <div
+            className="fixed inset-0 bg-black opacity-50 z-30 md:hidden"
+            onClick={toggleSidebar} // Close sidebar when clicking overlay
+          ></div>
+        )}
+        <main className="flex-grow w-full"> {/* Ensure main content takes full width */}
           {renderPage()}
         </main>
       </div>
