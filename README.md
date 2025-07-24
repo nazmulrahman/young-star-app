@@ -1,71 +1,238 @@
-# Getting Started with Create React App
+Young-Star: Online Learning and Management Platform
+Young-Star is a comprehensive online learning and management platform designed to facilitate interaction between instructors and students. It provides tools for task assignment, submission management, real-time messaging, meeting scheduling, and announcements, creating a streamlined educational environment.
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+✨ Features
+For Instructors:
 
-## Available Scripts
+Dashboard Overview: Quick stats on submissions, students, meetings, and pending instructor requests.
 
-In the project directory, you can run:
+Student Management: Add new students, view student profiles, and manage existing student accounts.
 
-### `npm start`
+Task Management: Create, assign, and update programming tasks with due dates.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Submission Grading: View student code submissions, provide grades, and detailed feedback.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Meeting Scheduling: Schedule and manage online meetings (e.g., Google Meet) with specific students or groups.
 
-### `npm test`
+Announcements: Create and publish announcements for all students.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Direct Messaging: Communicate directly with individual students.
 
-### `npm run build`
+Instructor Request Approval: Review and approve/reject applications from users wanting to become instructors.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+For Students:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Personalized Dashboard: Track overall task completion, view tasks due soon, and upcoming meetings.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+My Tasks: View assigned tasks, submit code, run mock tests, and review instructor feedback and grades.
 
-### `npm run eject`
+My Notes: Create and manage personal text or image-based notes.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Meetings: View scheduled meetings and join directly via provided links.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Announcements: Access all published announcements from instructors.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Direct Messaging: Communicate directly with their instructor.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+🚀 Technologies Used
+Frontend:
 
-## Learn More
+React.js: A JavaScript library for building user interfaces.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Tailwind CSS: A utility-first CSS framework for rapid UI development.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Lucide React: A collection of beautiful and customizable open-source icons.
 
-### Code Splitting
+Backend:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Firebase Firestore: A flexible, scalable NoSQL cloud database for storing and syncing data.
 
-### Analyzing the Bundle Size
+Firebase Authentication: Provides secure user authentication (email/password, Google Sign-In).
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Deployment:
 
-### Making a Progressive Web App
+Firebase Hosting (Recommended)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+🛠️ Setup and Installation
+Follow these steps to get a local copy of Young-Star up and running on your machine.
 
-### Advanced Configuration
+Prerequisites
+Before you begin, ensure you have the following installed:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+Node.js: Download & Install Node.js (which includes npm).
 
-### Deployment
+npm (Node Package Manager) or Yarn.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+Firebase CLI:
 
-### `npm run build` fails to minify
+npm install -g firebase-tools
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
-# young-star-app
+1. Clone the Repository
+git clone https://github.com/your-username/young-star.git
+cd young-star
+
+(Replace your-username with your actual GitHub username or the repository URL)
+
+2. Install Dependencies
+npm install
+# OR
+yarn install
+
+3. Firebase Project Setup
+Young-Star relies on Firebase for its backend. You'll need to set up your own Firebase project:
+
+Create a Firebase Project:
+
+Go to the Firebase Console.
+
+Click "Add project" and follow the steps to create a new project.
+
+Enable Firebase Services:
+
+In your Firebase project, enable Firestore Database and Authentication.
+
+For Authentication, enable Email/Password and Google sign-in providers.
+
+Get Firebase Configuration:
+
+In your Firebase project settings (Project overview -> Project settings -> General), find the "Your apps" section.
+
+If you don't have a web app, click the </> icon to add a new web app.
+
+Copy the firebaseConfig object.
+
+Update src/App.js:
+
+Open src/App.js in your cloned project.
+
+Locate the firebaseConfig object near the top of the file.
+
+Replace the placeholder apiKey, authDomain, projectId, storageBucket, messagingSenderId, and appId values with your actual Firebase project's configuration.
+
+Set up Firestore Security Rules:
+
+In the Firebase Console, navigate to "Firestore Database" -> "Rules" tab.
+
+Replace the default rules with the following to ensure proper access control for your application:
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Users Collection:
+    // Allows any authenticated user to read all user profiles.
+    // Allows users to create their own profile on signup (if it doesn't exist).
+    // Allows an authenticated user to update their own profile.
+    // IMPORTANT: Allows instructors to update *any* user's role (specifically for approving instructor applications).
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null; // For new user registration
+      allow update: if request.auth != null && (request.auth.uid == userId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'instructor');
+      allow delete: if false; // Deletion should be handled by backend/admin only
+    }
+
+    // Tasks Collection:
+    // Allows all authenticated users to read tasks.
+    // Only instructors can create, update, or delete tasks.
+    match /tasks/{taskId} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'instructor';
+    }
+
+    // Submissions Collection:
+    // Allows all authenticated users to read submissions (students can read their own, instructors can read all).
+    // Students can create and update their own submissions.
+    // Instructors can update submissions (for grading).
+    match /submissions/{submissionId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.resource.data.studentId == request.auth.uid; // Student can create their own submission
+      allow update: if request.auth != null && (request.resource.data.studentId == request.auth.uid || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'instructor');
+      allow delete: if false; // Deletion should be handled by backend/admin only
+    }
+
+    // Meetings Collection:
+    // Allows all authenticated users to read meetings.
+    // Only instructors can create, update, or delete meetings.
+    match /meetings/{meetingId} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'instructor';
+    }
+
+    // Announcements Collection:
+    // Allows all authenticated users to read announcements.
+    // Only instructors can create, update, or delete announcements.
+    match /announcements/{announcementId} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'instructor';
+    }
+
+    // Messages Collection:
+    // Allows authenticated users to read messages where they are either the sender or receiver.
+    // Allows authenticated users to create messages.
+    match /messages/{messageId} {
+      allow read: if request.auth != null && (resource.data.senderId == request.auth.uid || resource.data.receiverId == request.auth.uid);
+      allow create: if request.auth != null && request.resource.data.senderId == request.auth.uid;
+      allow update, delete: if false; // Messages are generally immutable or deleted by backend
+    }
+
+    // Notes Collection:
+    // Allows students to read, create, update, and delete their own notes.
+    match /notes/{noteId} {
+      allow read, create, update, delete: if request.auth != null && request.auth.uid == resource.data.studentId;
+    }
+
+    // Instructor Applications Collection:
+    // Allows any authenticated user to create an application (role 'pending').
+    // Only instructors can read and update/delete these applications (to approve/reject).
+    match /instructorApplications/{applicationId} {
+      allow create: if request.auth != null;
+      allow read, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'instructor';
+    }
+  }
+}
+
+Click "Publish" to apply the rules.
+
+4. Run the Application Locally
+npm start
+# OR
+yarn start
+
+This will open the application in your browser at http://localhost:3000.
+
+🧑‍💻 Usage
+You can test the application with different user roles:
+
+Instructor Account:
+
+Register a new account (e.g., instructor@example.com with password password).
+
+Log in.
+
+Go to the "Instructor Requests" page and approve this user to be an instructor.
+
+Log out and log back in with the same credentials. You should now have instructor access.
+
+Student Account:
+
+Register a new account (e.g., student1@example.com with password password).
+
+Log in. You will automatically be assigned the 'student' role.
+
+🤝 Contributing
+Contributions are welcome! If you have suggestions for improvements or new features, please feel free to:
+
+Fork the repository.
+
+Create a new branch (git checkout -b feature/YourFeature).
+
+Make your changes.
+
+Commit your changes (git commit -m 'Add new feature').
+
+Push to the branch (git push origin feature/YourFeature).
+
+Open a Pull Request.
+
+📄 License
+This project is licensed under the MIT License - see the LICENSE file for details.
